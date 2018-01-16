@@ -62,7 +62,8 @@ void preProcess(uchar4 **inputImage, unsigned char **greyImage,
 	// allocate memory on the device for both input and output
 	checkCudaErrors(cudaMalloc(d_rgbaImage, sizeof(uchar4) * numPixels));
 	checkCudaErrors(cudaMalloc(d_greyImage, sizeof(unsigned char) * numPixels));
-	checkCudaErrors(cudaMemset(*d_greyImage, 0, numPixels * sizeof(unsigned char))); //make sure no memory is left laying around
+	// make sure no memory is left laying around
+	checkCudaErrors(cudaMemset(*d_greyImage, 0, numPixels * sizeof(unsigned char)));
 
 	// copy input array to the GPU
 	checkCudaErrors(cudaMemcpy(*d_rgbaImage, *inputImage, sizeof(uchar4) * numPixels, cudaMemcpyHostToDevice));

@@ -32,35 +32,85 @@
 //so that the entire image is processed.
 
 #include "utils.h"
+#include <iostream>
 
+
+
+/**
+ * Fill in the kernel to convert from color to greyscale
+ * the mapping from components of a uchar4 to RGBA is:
+ *  .x -> R ; .y -> G ; .z -> B ; .w -> A
+ *
+ * The output (greyImage) at each pixel should be the result of
+ * applying the formula: output = .299f * R + .587f * G + .114f * B;
+ * Note: We will be ignoring the alpha channel for this conversion
+ *
+ * First create a mapping from the 2D block and grid locations
+ * to an absolute 2D location in the image, then use that to
+ * calculate a 1D offset
+ */
 __global__
-void rgba_to_greyscale(const uchar4* const rgbaImage,
-                       unsigned char* const greyImage,
-                       int numRows, int numCols)
+void rgba_to_greyscale(
+		const uchar4* const rgbaImage,
+		unsigned char* const greyImage,
+		int numRows, int numCols)
 {
-  //TODO
-  //Fill in the kernel to convert from color to greyscale
-  //the mapping from components of a uchar4 to RGBA is:
-  // .x -> R ; .y -> G ; .z -> B ; .w -> A
-  //
-  //The output (greyImage) at each pixel should be the result of
-  //applying the formula: output = .299f * R + .587f * G + .114f * B;
-  //Note: We will be ignoring the alpha channel for this conversion
+	const int GRID_Y = (blockDim.y * blockIdx.y) + threadIdx.y;
+	const int GRID_X = (blockDim.x * blockIdx.x) + threadIdx.x;
+	const int OFFSET_X = GRID_Y * gridDim.x * blockDim.x;
+	const int i = OFFSET_X + GRID_X;
 
-  //First create a mapping from the 2D block and grid locations
-  //to an absolute 2D location in the image, then use that to
-  //calculate a 1D offset
+	greyImage[i] = .299f * rgbaImage[i].x
+	             + .587f * rgbaImage[i].y
+	             + .114f * rgbaImage[i].z;
+
+	// I cannot. std::cout << "Kernel: pixel " << i << " = " << greyImage[i] << std::endl;
 }
 
-void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage, uchar4 * const d_rgbaImage,
-                            unsigned char* const d_greyImage, size_t numRows, size_t numCols)
-{
-  //You must fill in the correct sizes for the blockSize and gridSize
-  //currently only one block with one thread is being launched
-  const dim3 blockSize(1, 1, 1);  //TODO
-  const dim3 gridSize( 1, 1, 1);  //TODO
-  rgba_to_greyscale<<<gridSize, blockSize>>>(d_rgbaImage, d_greyImage, numRows, numCols);
-  
-  cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
 
+/**
+ * https://stackoverflow.com/questions/16619274/cuda-griddim-and-blockdim
+ *
+ * blockDim.x,y,z	 		number of threads in a block		in the particular direction
+ *
+ * gridDim.x,y,z			number of blocks in a grid			in the particular direction
+ *
+ * blockDim.x * gridDim.x	number of threads in a grid			in the x direction
+ *
+ */
+void your_rgba_to_greyscale(const uchar4* const h_rgbaImage, uchar4* const d_rgbaImage,
+		unsigned char* const d_greyImage, size_t numRows, size_t numCols)
+{
+/*
+			const int threadsPerBlock = 256;
+			// = (50000 + 256 - 1) / 256 = 196
+			const int blocksPerGrid = (m_numElements + threadsPerBlock - 1) / threadsPerBlock;
+			printf("CUDA kernel launch with %d blocks of %d threads\n", blocksPerGrid, threadsPerBlock);
+			d_vector_add<<<blocksPerGrid, threadsPerBlock>>>(d_A, d_B, d_C, m_numElements);
+*/
+
+	const int N_BLOCKS = 1024;
+	const int N_BLOCKS_PER_DIM = sqrt(N_BLOCKS);
+
+	// number of threads per block (up to 512/1024 based on GPU model)
+	const dim3 blockSize(numCols/N_BLOCKS_PER_DIM, numRows/N_BLOCKS_PER_DIM, 1);
+	const int nThreadsPerBlocks = (blockSize.x * blockSize.y);
+
+	// number of blocks
+	const dim3 gridSize(N_BLOCKS_PER_DIM, N_BLOCKS_PER_DIM, 1);
+	const int nBlocks = (gridSize.x * gridSize.y);
+	const int nThreads = nBlocks * nThreadsPerBlocks;
+
+	std::cout	<< "\n\n\nBlocks per dimension: " << N_BLOCKS_PER_DIM << "\n"
+				<< "Total Threads: " << nThreads << "\n"
+				<< "\nType      \tC(x)\tR(x)\tTot\tLabel"
+				<< "\nElements  \t" << numCols << "\t" << numRows << "\t" << (numRows*numCols) << "\tPixels"
+				<< "\nGrid Size \t" << gridSize.x << "\t" << gridSize.y << "\t" << nBlocks << "\tBlocks"
+				<< "\nBlock Size\t" << blockSize.x << "\t" << blockSize.y << "\t" << nThreadsPerBlocks << "\tThreads/Block"
+				<< "\n" << std::endl;
+
+	rgba_to_greyscale<<<gridSize, blockSize>>>(d_rgbaImage, d_greyImage, numRows, numCols);
+
+	cudaDeviceSynchronize();
+	checkCudaErrors(cudaGetLastError());
 }

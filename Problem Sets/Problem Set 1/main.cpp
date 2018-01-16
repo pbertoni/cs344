@@ -1,22 +1,22 @@
 //Udacity HW1 Solution
 
-#include <iostream>
 #include "timer.h"
 #include "utils.h"
 #include <string>
 #include <stdio.h>
+#include <iostream>
+
 #include "reference_calc.h"
 #include "compare.h"
+
+// include the definitions of the above functions for this homework
+#include "HW1.cpp"
 
 
 void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage, 
 		uchar4 * const d_rgbaImage,
 		unsigned char* const d_greyImage,
 		size_t numRows, size_t numCols);
-
-
-//include the definitions of the above functions for this homework
-#include "HW1.cpp"
 
 
 int main(int argc, char **argv)
@@ -73,7 +73,8 @@ int main(int argc, char **argv)
 	// -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
 
 	timer.Stop();
-	cudaDeviceSynchronize(); checkCudaErrors(cudaGetLastError());
+	cudaDeviceSynchronize();
+	checkCudaErrors(cudaGetLastError());
 
 	int err = printf("Your code ran in: %f msecs.\n", timer.Elapsed());
 
@@ -84,7 +85,7 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	size_t numPixels = numRows()*numCols();
+	const size_t numPixels = numRows() * numCols();
 	checkCudaErrors(cudaMemcpy(h_greyImage, d_greyImage, sizeof(unsigned char) * numPixels, cudaMemcpyDeviceToHost));
 
 	// check results and output the grey image
@@ -95,8 +96,7 @@ int main(int argc, char **argv)
 	postProcess(reference_file, h_greyImage);
 
 	// generateReferenceImage(input_file, reference_file);
-	compareImages(reference_file, output_file, useEpsCheck, perPixelError,
-			globalError);
+	compareImages(reference_file, output_file, useEpsCheck, perPixelError, globalError);
 
 	cleanup();
 
