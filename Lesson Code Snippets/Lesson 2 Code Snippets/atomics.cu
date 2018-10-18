@@ -1,17 +1,27 @@
 #include <stdio.h>
 #include "gputimer.h"
 
-#define NUM_THREADS 1000000
+#define NUM_THREADS 10000000
 #define ARRAY_SIZE  100
-
 #define BLOCK_WIDTH 1000
+
 
 void print_array(int *array, int size)
 {
-    printf("{ ");
-    for (int i = 0; i < size; i++)  { printf("%d ", array[i]); }
-    printf("}\n");
+	if (size > 100)
+	{
+		printf("Warning: long array, printing only first 100 of %d\n", size);
+		size = 100;
+	}
+
+	printf("{ ");
+	for (int i = 0; i < size; i++)
+	{
+		printf("%d ", array[i]);
+	}
+	printf("}\n");
 }
+
 
 __global__ void increment_naive(int *g)
 {

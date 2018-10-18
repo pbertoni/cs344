@@ -101,8 +101,8 @@ void your_rgba_to_greyscale(const uchar4* const h_rgbaImage, uchar4* const d_rgb
 	const int nBlocks = (gridSize.x * gridSize.y);
 	const int nThreads = nBlocks * nThreadsPerBlocks;
 
-	std::cout	<< "\n\n\nBlocks per dimension: " << N_BLOCKS_PER_DIM << "\n"
-				<< "Total Threads: " << nThreads << "\n"
+	std::cout << "\nBlocks per dimension: " << N_BLOCKS_PER_DIM
+				<< "\nTotal Threads: " << nThreads << "\n"
 				<< "\nType      \tC(x)\tR(x)\tTot\tLabel"
 				<< "\nElements  \t" << numCols << "\t" << numRows << "\t" << (numRows*numCols) << "\tPixels"
 				<< "\nGrid Size \t" << gridSize.x << "\t" << gridSize.y << "\t" << nBlocks << "\tBlocks"

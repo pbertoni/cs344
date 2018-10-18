@@ -21,6 +21,8 @@ void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage,
 
 int main(int argc, char **argv)
 {
+	std::cout << "Welcome to HW1 built at " << __DATE__ << ", " << __TIME__ << std::endl;
+
 	uchar4        *h_rgbaImage, *d_rgbaImage;
 	unsigned char *h_greyImage, *d_greyImage;
 
@@ -57,7 +59,7 @@ int main(int argc, char **argv)
 		globalError   = atof(argv[5]);
 		break;
 	default:
-		std::cerr << "Usage: ./HW1 input_file [output_filename] [reference_filename] [perPixelError] [globalError]" << std::endl;
+		std::cerr << "Usage: ./HW1 input_file [output_filename reference_filename] [perPixelError globalError]" << std::endl;
 		exit(1);
 	}
 
@@ -76,14 +78,7 @@ int main(int argc, char **argv)
 	cudaDeviceSynchronize();
 	checkCudaErrors(cudaGetLastError());
 
-	int err = printf("Your code ran in: %f msecs.\n", timer.Elapsed());
-
-	if (err < 0)
-	{
-		// Couldn't print! Probably the student closed stdout - bad news
-		std::cerr << "Couldn't print timing information! STDOUT Closed!" << std::endl;
-		exit(1);
-	}
+	std::cout <<"Your code ran in: " << timer.Elapsed() << " msecs" << std::endl;
 
 	const size_t numPixels = numRows() * numCols();
 	checkCudaErrors(cudaMemcpy(h_greyImage, d_greyImage, sizeof(unsigned char) * numPixels, cudaMemcpyDeviceToHost));
@@ -95,7 +90,7 @@ int main(int argc, char **argv)
 
 	postProcess(reference_file, h_greyImage);
 
-	// generateReferenceImage(input_file, reference_file);
+	generateReferenceImage(input_file, reference_file);
 	compareImages(reference_file, output_file, useEpsCheck, perPixelError, globalError);
 
 	cleanup();

@@ -1,5 +1,4 @@
-#ifndef UTILS_H__
-#define UTILS_H__
+#pragma once
 
 #include <iostream>
 #include <iomanip>
@@ -20,20 +19,26 @@ void check(T err, const char* const func, const char* const file, const int line
   }
 }
 
+
 template<typename T>
-void checkResultsExact(const T* const ref, const T* const gpu, size_t numElem) {
-  //check that the GPU result matches the CPU result
-  for (size_t i = 0; i < numElem; ++i) {
-    if (ref[i] != gpu[i]) {
-      std::cerr << "Difference at pos " << i << std::endl;
-      //the + is magic to convert char to int without messing
-      //with other types
-      std::cerr << "Reference: " << std::setprecision(17) << +ref[i] <<
-                 "\nGPU      : " << +gpu[i] << std::endl;
-      exit(1);
-    }
-  }
+void checkResultsExact(const T* const ref, const T* const gpu, size_t numElem)
+{
+	//check that the GPU result matches the CPU result
+	for (size_t i = 0; i < numElem; ++i)
+	{
+		if (ref[i] != gpu[i])
+		{
+			std::cerr << "Difference at pos " << i << std::endl;
+			//the + is magic to convert char to int without messing
+			//with other types
+			std::cerr << "Reference: " << std::setprecision(17) << +ref[i] <<
+					 "\nGPU      : " << +gpu[i]
+					<< "\nExiting with 1" << std::endl;
+			exit(1);
+		}
+	}
 }
+
 
 template<typename T>
 void checkResultsEps(const T* const ref, const T* const gpu, size_t numElem, double eps1, double eps2) {
@@ -64,6 +69,7 @@ void checkResultsEps(const T* const ref, const T* const gpu, size_t numElem, dou
   }
 }
 
+
 //Uses the autodesk method of image comparison
 //Note the the tolerance here is in PIXELS not a percentage of input pixels
 template<typename T>
@@ -84,5 +90,3 @@ void checkResultsAutodesk(const T* const ref, const T* const gpu, size_t numElem
     exit(1);
   }
 }
-
-#endif
