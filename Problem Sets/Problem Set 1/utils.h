@@ -10,8 +10,10 @@
 
 #define checkCudaErrors(val) check( (val), #val, __FILE__, __LINE__)
 
+
 template<typename T>
-void check(T err, const char* const func, const char* const file, const int line) {
+void check(T err, const char* const func, const char* const file, const int line)
+{
   if (err != cudaSuccess) {
     std::cerr << "CUDA error at: " << file << ":" << line << std::endl;
     std::cerr << cudaGetErrorString(err) << " " << func << std::endl;
@@ -41,7 +43,8 @@ void checkResultsExact(const T* const ref, const T* const gpu, size_t numElem)
 
 
 template<typename T>
-void checkResultsEps(const T* const ref, const T* const gpu, size_t numElem, double eps1, double eps2) {
+void checkResultsEps(const T* const ref, const T* const gpu, size_t numElem, double eps1, double eps2)
+{
   assert(eps1 >= 0 && eps2 >= 0);
   unsigned long long totalDiff = 0;
   unsigned numSmallDifferences = 0;

@@ -32,6 +32,7 @@
 //so that the entire image is processed.
 
 #include "utils.h"
+
 #include <iostream>
 
 
@@ -51,9 +52,7 @@
  */
 __global__
 void rgba_to_greyscale(
-		const uchar4* const rgbaImage,
-		unsigned char* const greyImage,
-		int numRows, int numCols)
+		const uchar4 * const rgbaImage, unsigned char * const greyImage)
 {
 	const int GRID_Y = (blockDim.y * blockIdx.y) + threadIdx.y;
 	const int GRID_X = (blockDim.x * blockIdx.x) + threadIdx.x;
@@ -78,38 +77,33 @@ void rgba_to_greyscale(
  * blockDim.x * gridDim.x	number of threads in a grid			in the x direction
  *
  */
-void your_rgba_to_greyscale(const uchar4* const h_rgbaImage, uchar4* const d_rgbaImage,
-		unsigned char* const d_greyImage, size_t numRows, size_t numCols)
+void your_rgba_to_greyscale(const uchar4 * const h_rgbaImage, uchar4 * const d_rgbaImage,
+		unsigned char * const d_greyImage, size_t nRows, size_t nCols)
 {
-/*
-			const int threadsPerBlock = 256;
-			// = (50000 + 256 - 1) / 256 = 196
-			const int blocksPerGrid = (m_numElements + threadsPerBlock - 1) / threadsPerBlock;
-			printf("CUDA kernel launch with %d blocks of %d threads\n", blocksPerGrid, threadsPerBlock);
-			d_vector_add<<<blocksPerGrid, threadsPerBlock>>>(d_A, d_B, d_C, m_numElements);
-*/
-
 	const int N_BLOCKS = 1024;
 	const int N_BLOCKS_PER_DIM = sqrt(N_BLOCKS);
 
 	// number of threads per block (up to 512/1024 based on GPU model)
-	const dim3 blockSize(numCols/N_BLOCKS_PER_DIM, numRows/N_BLOCKS_PER_DIM, 1);
-	const int nThreadsPerBlocks = (blockSize.x * blockSize.y);
-
+	const dim3 blockSize(nCols / N_BLOCKS_PER_DIM, nRows / N_BLOCKS_PER_DIM, 1);
 	// number of blocks
 	const dim3 gridSize(N_BLOCKS_PER_DIM, N_BLOCKS_PER_DIM, 1);
-	const int nBlocks = (gridSize.x * gridSize.y);
-	const int nThreads = nBlocks * nThreadsPerBlocks;
+
+	// print information
+	const size_t nPixels = nRows * nCols;
+	const size_t nThreadsPerBlocks = (blockSize.x * blockSize.y);
+	const size_t nBlocks = (gridSize.x * gridSize.y);
+	const size_t nThreads = nBlocks * nThreadsPerBlocks;
 
 	std::cout << "\nBlocks per dimension: " << N_BLOCKS_PER_DIM
 				<< "\nTotal Threads: " << nThreads << "\n"
-				<< "\nType      \tC(x)\tR(x)\tTot\tLabel"
-				<< "\nElements  \t" << numCols << "\t" << numRows << "\t" << (numRows*numCols) << "\tPixels"
+				<< "\nType      \tC(x)\tR(x)\tTot\tUnit"
+				<< "\n----------\t----\t----\t---\t----"
+				<< "\nElements  \t" << nCols << "\t" << nRows << "\t" << nPixels << "\tPixels"
 				<< "\nGrid Size \t" << gridSize.x << "\t" << gridSize.y << "\t" << nBlocks << "\tBlocks"
 				<< "\nBlock Size\t" << blockSize.x << "\t" << blockSize.y << "\t" << nThreadsPerBlocks << "\tThreads/Block"
 				<< "\n" << std::endl;
 
-	rgba_to_greyscale<<<gridSize, blockSize>>>(d_rgbaImage, d_greyImage, numRows, numCols);
+	rgba_to_greyscale<<<gridSize, blockSize>>> (d_rgbaImage, d_greyImage);
 
 	cudaDeviceSynchronize();
 	checkCudaErrors(cudaGetLastError());
